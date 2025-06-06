@@ -9,18 +9,20 @@ services:
       - db-postgres
     networks:
       - my-network
+
   db-postgres:
     image: postgres:17.5-alpine
     container_name: db-postgres
     environment:
-      POSTGRES_DB: myapp
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: ${DB_NAME:-account-db}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres123}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:${DB_PORT:-5432}"
     restart: unless-stopped
     networks:
       - my-network
+
 networks:
   my-network:
     driver: bridge
