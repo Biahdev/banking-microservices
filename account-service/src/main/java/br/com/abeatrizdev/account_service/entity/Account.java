@@ -22,9 +22,9 @@ public class Account {
 
     String document;
 
-    BigDecimal balance;
+    BigDecimal balance = new BigDecimal(0);
 
-    AccountStatus status;
+    AccountStatus status = AccountStatus.ACTIVE;
 
     @CreationTimestamp
     @Column(name = "created_at")
