@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -86,7 +87,24 @@ public class AccountControllerTest {
 
         @Test
         void givenInvalidRequest_whenCreateAccount_thenReturnBadRequest() throws Exception {
+            String urlPost = "/accounts";
+            var invalidJson = """
+                    {
+                        "name": "1",
+                        "document": ""
+                    }""";
+            var response = mockMvc.perform(post(urlPost)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(invalidJson));
 
+            response
+                    .andDo(print())
+                    .andExpectAll(
+                            status().isBadRequest(),
+                            jsonPath("$.message").value("Request contains validation errors"),
+                            jsonPath("$.fields.name").exists(),
+                            jsonPath("$.fields.document").exists()
+                    );
         }
     }
 
