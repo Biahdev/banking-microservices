@@ -81,11 +81,11 @@ public class AccountServiceTest {
     }
 
     @Nested
-    @DisplayName("Create Account")
-    class CreateAccount {
+    @DisplayName("Account Create")
+    class Create {
 
         @Test
-        @DisplayName("Create Account Success")
+        @DisplayName("Success")
         void givenValidAccountRequest_whenCreateAccount_thenReturnAccountResponse() {
             // Given
             given(accountMapper.toEntity(createAccountRequest)).willReturn(accountEntity);
@@ -116,7 +116,7 @@ public class AccountServiceTest {
         }
 
         @Test
-        @DisplayName("Create Account Failure - Null Request")
+        @DisplayName("Failure - Null Request")
         void givenNullRequest_whenCreateAccount_thenThrowIllegalArgumentException() {
             // Given | When
             IllegalArgumentException exception = assertThrows(
@@ -125,11 +125,10 @@ public class AccountServiceTest {
             );
 
             // Then
-            assertAll("Exception should be thrown with proper details",
-                    () -> assertNotNull(exception, "Exception should not be null"),
-                    () -> assertTrue(exception.getMessage().contains("Request cannot be null"),
-                            "Exception message should mention null request"),
-                    () -> assertInstanceOf(IllegalArgumentException.class, exception, "Should throw IllegalArgumentException")
+            assertAll("Exception should be thrown with details",
+                    () -> assertNotNull(exception),
+                    () -> assertTrue(exception.getMessage().contains("Request cannot be null")),
+                    () -> assertInstanceOf(IllegalArgumentException.class, exception)
             );
 
             assertAll("No service dependencies should be invoked when request is null",
@@ -139,7 +138,7 @@ public class AccountServiceTest {
         }
 
         @Test
-        @DisplayName("Create Account Failure - Repository Save Error")
+        @DisplayName("Failure - Repository Save Error")
         void givenRepositorySaveFailure_whenCreateAccount_thenThrowRuntimeException() {
             // Given
             given(accountMapper.toEntity(createAccountRequest)).willReturn(accountEntity);
@@ -161,10 +160,34 @@ public class AccountServiceTest {
             assertAll("Service should stop execution after repository failure",
                     () -> verify(accountMapper, times(1)).toEntity(eq(createAccountRequest)),
                     () -> verify(accountRepository, times(1)).save(eq(accountEntity)),
-                    () -> verify(accountMapper, never()).toDTO(any()),
+                    () -> verify(accountMapper, never()).toDTO((Account) any()),
                     () -> verifyNoMoreInteractions(accountMapper, accountRepository)
             );
         }
+
+    }
+
+    @Nested
+    @DisplayName("Account FindById")
+    class FindById {
+
+    }
+
+    @Nested
+    @DisplayName("Account FindAll")
+    class FindAll {
+
+    }
+
+    @Nested
+    @DisplayName("Account Update")
+    class Update {
+
+    }
+
+    @Nested
+    @DisplayName("Account Delete")
+    class Delete {
 
     }
 }

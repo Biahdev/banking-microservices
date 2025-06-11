@@ -9,6 +9,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -25,7 +26,7 @@ public class ApiExceptionHandler {
         Map<String, List<String>> detailsErrors = new HashMap<>();
 
         ex.getBindingResult().getFieldErrors().forEach(error ->
-            detailsErrors.computeIfAbsent(error.getField(), key -> new ArrayList<>()).add(error.getDefaultMessage())
+                detailsErrors.computeIfAbsent(error.getField(), key -> new ArrayList<>()).add(error.getDefaultMessage())
         );
 
         var errorMessage = new ErrorMessage("Request contains validation errors", HttpStatus.BAD_REQUEST, detailsErrors);
@@ -34,39 +35,53 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorMessage> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
-        var errorMessage = new ErrorMessage("JSON com o formato inválido", HttpStatus.BAD_REQUEST);
+        var errorMessage = new ErrorMessage("Invalid JSON", HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorMessage> handleEntityNotFoundException(EntityNotFoundException ex) {
-        var msg = ex.getMessage() != null ? "Entidade " + ex.getMessage() + " não foi encontrada" : "Entidade não foi encontrada";
+        var msg = ex.getMessage() != null ? "Entity not found with id " + ex.getMessage() : "Entity not found with id";
         var errorMessage = new ErrorMessage(msg, HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorMessage> handleNoResourceFoundException(NoResourceFoundException ex) {
-        var errorMessage = new ErrorMessage("Recurso não encontrado", HttpStatus.NOT_FOUND);
+        var errorMessage = new ErrorMessage("Resource not found", HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorMessage> handleNoHandlerFoundExceptio(NoHandlerFoundException ex) {
-        var errorMessage = new ErrorMessage("Recurso não encontrado", HttpStatus.NOT_FOUND);
+        var errorMessage = new ErrorMessage("Resource not found", HttpStatus.NOT_FOUND);
         return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorMessage> handleNoHandlerFoundExceptio(IllegalArgumentException ex) {
+        var errorMessage = new ErrorMessage("Invalid parameter provided", HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorMessage> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException ex) {
-        var errorMessage = new ErrorMessage("Método HTTP não suportado", HttpStatus.METHOD_NOT_ALLOWED);
+        var errorMessage = new ErrorMessage("HTTP method not supported", HttpStatus.METHOD_NOT_ALLOWED);
         return new ResponseEntity<>(errorMessage, HttpStatus.METHOD_NOT_ALLOWED);
     }
 
 
-    // DataIntegrityViolationException /
-    //  / JpaSystemException /
-    // compo passo no json invalido ex: "campo_invalido_inexistnte": 14
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorMessage> handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        assert ex.getRequiredType() != null;
+        String message = String.format("Invalid value '%s' for parameter '%s'. Expected type: %s",
+                ex.getValue(),
+                ex.getName(),
+                ex.getRequiredType().getSimpleName());
+
+        var errorMessage = new ErrorMessage(message, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+    }
 
 
 }

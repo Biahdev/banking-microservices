@@ -6,6 +6,8 @@ import br.com.abeatrizdev.account_service.entity.Account;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface AccountMapper {
 
@@ -13,5 +15,7 @@ public interface AccountMapper {
     Account toEntity(CreateAccountRequest category);
 
     AccountResponse toDTO(Account clientEntity);
+
+    List<AccountResponse> toDTO(List<Account> clientEntity);
 
 }

@@ -1,7 +1,6 @@
-package br.com.abeatrizdev.account_service.controller;
+package br.com.abeatrizdev.account_service.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -33,7 +32,7 @@ public abstract class BaseControllerTest {
     class CommonControllerTests {
 
         @Test
-        @DisplayName("Invalid resource")
+        @DisplayName("Invalid resource return error message")
         void givenInvalidResource_whenRequest_thenReturnNotFoundWithErrorMessage() throws Exception {
             //Given | When
             var response = mockMvc.perform(get("/recurso_invalido"));
@@ -41,15 +40,17 @@ public abstract class BaseControllerTest {
             //Then
             response
                     .andDo(print())
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.message", is("Recurso não encontrado")))
-                    .andExpect(jsonPath("$.timestamp").exists())
-                    .andExpect(jsonPath("$.status", is(404)));
+                    .andExpectAll(
+                            status().isNotFound(),
+                            jsonPath("$.status").value(404),
+                            jsonPath("$.message").value("Resource not found"),
+                            jsonPath("$.timestamp").exists()
+                    );
 
         }
 
         @Test
-        @DisplayName("Invalid HTTP Method")
+        @DisplayName("Invalid HTTP Method return error message")
         void givenUnsupportedHttpMethod_whenRequest_thenReturnsMethodNotAllowed() throws Exception {
             // Given | When
             var response = mockMvc.perform(put(baseUrl));
@@ -57,14 +58,16 @@ public abstract class BaseControllerTest {
             // Then
             response
                     .andDo(print())
-                    .andExpect(status().isMethodNotAllowed())
-                    .andExpect(jsonPath("$.status", is(405)))
-                    .andExpect(jsonPath("$.message").exists())
-                    .andExpect(jsonPath("$.timestamp").exists());
+                    .andExpectAll(
+                            status().isMethodNotAllowed(),
+                            jsonPath("$.status").value(405),
+                            jsonPath("$.message").value("HTTP method not supported"),
+                            jsonPath("$.timestamp").exists()
+                    );
         }
 
         @Test
-        @DisplayName("Invalid JSON return ErrorMessage")
+        @DisplayName("Invalid JSON return error message")
         void givenInvalidJson_whenCreateCategory_thenReturnBadRequestWithErrorMessage() throws Exception {
             // Given
             var json = """
@@ -81,9 +84,12 @@ public abstract class BaseControllerTest {
             //Then
             response
                     .andDo(print())
-                    .andExpect(status().isBadRequest())
-                    .andExpect(jsonPath("$.status", is(400)))
-                    .andExpect(jsonPath("$.message", containsString("JSON")));
+                    .andExpectAll(
+                            status().isBadRequest(),
+                            jsonPath("$.status").value(400),
+                            jsonPath("$.message").value("Invalid JSON"),
+                            jsonPath("$.timestamp").exists()
+                    );
         }
 
     }

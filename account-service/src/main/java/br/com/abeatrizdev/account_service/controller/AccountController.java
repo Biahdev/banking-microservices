@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/accounts")
 public class AccountController {
@@ -22,8 +25,18 @@ public class AccountController {
     }
 
     @GetMapping
-    public String listAll() {
-        return "retorno";
+    public ResponseEntity<List<AccountResponse>> findAll() {
+        return ResponseEntity.status(HttpStatus.OK).body(accountService.findAll());
     }
+
+    @GetMapping("/{publicId}")
+    public ResponseEntity<AccountResponse> findByPublicId(@PathVariable UUID publicId) {
+        return ResponseEntity.status(HttpStatus.OK).body(accountService.findByPublicId(publicId));
+    }
+
+
+
+
+
 
 }
