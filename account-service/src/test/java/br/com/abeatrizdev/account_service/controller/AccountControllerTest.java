@@ -4,19 +4,15 @@ import br.com.abeatrizdev.account_service.dto.account.AccountResponse;
 import br.com.abeatrizdev.account_service.dto.account.CreateAccountRequest;
 import br.com.abeatrizdev.account_service.entity.AccountStatus;
 import br.com.abeatrizdev.account_service.service.AccountService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -26,22 +22,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @TestMethodOrder(MethodOrderer.Random.class)
 @WebMvcTest(AccountController.class)
-public class AccountControllerTest {
+public class AccountControllerTest extends BaseControllerTest {
 
     @MockitoBean
     private AccountService accountService;
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
     private CreateAccountRequest createAccountRequest;
+
     private AccountResponse accountResponse;
 
     @BeforeEach
     void setUp() {
+        baseUrl = "/accounts";
+        resourceName = "accounts";
+
         createAccountRequest = new CreateAccountRequest(
                 "João Silva",
                 "12345678901"
@@ -63,11 +57,11 @@ public class AccountControllerTest {
     class CreateAccount {
 
         @Test
+        @DisplayName("Create Account Success")
         void givenValidRequest_whenCreateAccount_thenReturnCreated() throws Exception {
             given(accountService.create(any(CreateAccountRequest.class))).willReturn(accountResponse);
 
-            String urlPost = "/accounts";
-            var response = mockMvc.perform(post(urlPost)
+            var response = mockMvc.perform(post(baseUrl)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(createAccountRequest)));
 
@@ -86,14 +80,14 @@ public class AccountControllerTest {
         }
 
         @Test
+        @DisplayName("Create Account Failure")
         void givenInvalidRequest_whenCreateAccount_thenReturnBadRequest() throws Exception {
-            String urlPost = "/accounts";
             var invalidJson = """
                     {
                         "name": "1",
                         "document": ""
                     }""";
-            var response = mockMvc.perform(post(urlPost)
+            var response = mockMvc.perform(post(baseUrl)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(invalidJson));
 
@@ -102,8 +96,8 @@ public class AccountControllerTest {
                     .andExpectAll(
                             status().isBadRequest(),
                             jsonPath("$.message").value("Request contains validation errors"),
-                            jsonPath("$.fields.name").exists(),
-                            jsonPath("$.fields.document").exists()
+                            jsonPath("$.details.name").exists(),
+                            jsonPath("$.details.document").exists()
                     );
         }
     }

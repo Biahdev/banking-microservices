@@ -34,6 +34,7 @@ public class Account {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+
     @PrePersist
     public void generatePublicId() {
         if (publicId == null) {
@@ -49,6 +50,17 @@ public class Account {
         this.document = document;
         this.balance = balance;
         this.status = status;
+    }
+
+    public Account(Long id, UUID publicId, String name, String document, BigDecimal balance, AccountStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.publicId = publicId;
+        this.name = name;
+        this.document = document;
+        this.balance = balance;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public Long getId() {
