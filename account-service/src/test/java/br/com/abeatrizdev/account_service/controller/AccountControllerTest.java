@@ -49,7 +49,7 @@ public class AccountControllerTest extends BaseControllerTest {
 
     private final UUID validPublicId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
-    private final UUID invalidPublicId = UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479");
+    private final UUID nonExistentPublicId = UUID.fromString("f47ac10b-58cc-4372-a567-0e02b2c3d479");
 
     @BeforeEach
     void setUp() {
@@ -159,7 +159,7 @@ public class AccountControllerTest extends BaseControllerTest {
     class FindAll {
 
         @Test
-        @DisplayName("Success")
+        @DisplayName("Success - Multiple accounts list")
         void givenAccountsExist_whenFindAll_thenReturnAccountsList() throws Exception {
             // Given
             given(accountService.findAll()).willReturn(listAccountResponse);
@@ -240,21 +240,21 @@ public class AccountControllerTest extends BaseControllerTest {
         }
 
         @Test
-        @DisplayName("Failure - Not Found publicId")
-        void givenInvalidPublicId_whenFindByPublicId_thenReturnNotFound() throws Exception {
+        @DisplayName("Failure - Not existent publicId")
+        void givenNonExistentPublicId_whenFindByPublicId_thenReturnNotFound() throws Exception {
             // Given
-            given(accountService.findByPublicId(invalidPublicId))
-                    .willThrow(new EntityNotFoundException("" + invalidPublicId));
+            given(accountService.findByPublicId(nonExistentPublicId))
+                    .willThrow(new EntityNotFoundException("" + nonExistentPublicId));
 
             // When
-            var response = mockMvc.perform(get(baseUrl + "/{publicId}", invalidPublicId).contentType(MediaType.APPLICATION_JSON));
+            var response = mockMvc.perform(get(baseUrl + "/{publicId}", nonExistentPublicId).contentType(MediaType.APPLICATION_JSON));
 
             // Then
             response.andDo(print())
                     .andExpectAll(
                             status().isNotFound(),
                             jsonPath("$.status").value(404),
-                            jsonPath("$.message").value("Entity not found with id " + invalidPublicId),
+                            jsonPath("$.message").value("Entity not found with id " + nonExistentPublicId),
                             jsonPath("$.timestamp").exists()
                     );
         }
@@ -343,14 +343,14 @@ public class AccountControllerTest extends BaseControllerTest {
         }
 
         @Test
-        @DisplayName("Failure - Not Found publicId")
-        void givenInvalidPublicId_whenUpdate_thenReturnNotFound() throws Exception {
+        @DisplayName("Failure - Not existent publicId")
+        void givenNonExistentPublicId_whenUpdate_thenReturnNotFound() throws Exception {
             // Given
-            given(accountService.update(invalidPublicId, updateAccountRequest))
-                    .willThrow(new EntityNotFoundException("" + invalidPublicId));
+            given(accountService.update(nonExistentPublicId, updateAccountRequest))
+                    .willThrow(new EntityNotFoundException("" + nonExistentPublicId));
 
             // When
-            var response = mockMvc.perform(put(baseUrl + "/{publicId}", invalidPublicId, updateAccountRequest)
+            var response = mockMvc.perform(put(baseUrl + "/{publicId}", nonExistentPublicId, updateAccountRequest)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(updateAccountRequest)));
 
@@ -359,7 +359,7 @@ public class AccountControllerTest extends BaseControllerTest {
                     .andExpectAll(
                             status().isNotFound(),
                             jsonPath("$.status").value(404),
-                            jsonPath("$.message").value("Entity not found with id " + invalidPublicId),
+                            jsonPath("$.message").value("Entity not found with id " + nonExistentPublicId),
                             jsonPath("$.timestamp").exists()
                     );
         }
@@ -436,7 +436,7 @@ public class AccountControllerTest extends BaseControllerTest {
         }
 
         @Test
-        @DisplayName("Failure - non-zero balance")
+        @DisplayName("Failure - has non-zero balance")
         void givenAccountWithNonZeroBalance_whenSoftDelete_thenReturnBadRequest() throws Exception {
             // Given
             given(accountService.softDelete(validPublicId)).willThrow(new IllegalStateException("Cannot delete account with non-zero balance."));
@@ -457,14 +457,14 @@ public class AccountControllerTest extends BaseControllerTest {
         }
 
         @Test
-        @DisplayName("Failure - Not Found publicId")
+        @DisplayName("Failure - Not existent publicId")
         void givenNonExistentAccountId_whenSoftDelete_thenReturnNotFound() throws Exception {
             // Given
-            given(accountService.softDelete(invalidPublicId))
-                    .willThrow(new EntityNotFoundException("" + invalidPublicId));
+            given(accountService.softDelete(nonExistentPublicId))
+                    .willThrow(new EntityNotFoundException("" + nonExistentPublicId));
 
             // When
-            var response = mockMvc.perform(delete(baseUrl + "/{publicId}", invalidPublicId)
+            var response = mockMvc.perform(delete(baseUrl + "/{publicId}", nonExistentPublicId)
                     .contentType(MediaType.APPLICATION_JSON));
 
             // Then
@@ -473,7 +473,7 @@ public class AccountControllerTest extends BaseControllerTest {
                             status().isNotFound(),
                             content().contentType(MediaType.APPLICATION_JSON),
                             jsonPath("$.status").value(404),
-                            jsonPath("$.message").value("Entity not found with id " + invalidPublicId),
+                            jsonPath("$.message").value("Entity not found with id " + nonExistentPublicId),
                             jsonPath("$.timestamp").exists()
                     );
 
@@ -556,14 +556,14 @@ public class AccountControllerTest extends BaseControllerTest {
         }
 
         @Test
-        @DisplayName("Failure - Not Found publicId")
+        @DisplayName("Failure - Not existent publicId")
         void givenNonExistentAccountId_whenReactivate_thenReturnNotFound() throws Exception {
             // Given
-            given(accountService.reactivate(invalidPublicId))
+            given(accountService.reactivate(nonExistentPublicId))
                     .willThrow(new EntityNotFoundException("Account not found"));
 
             // When
-            var response = mockMvc.perform(put(baseUrl + "/{publicId}/reactivate", invalidPublicId)
+            var response = mockMvc.perform(put(baseUrl + "/{publicId}/reactivate", nonExistentPublicId)
                     .contentType(MediaType.APPLICATION_JSON));
 
             // Then

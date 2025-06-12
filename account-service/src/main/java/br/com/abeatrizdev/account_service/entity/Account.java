@@ -19,8 +19,10 @@ public class Account {
     @Column(unique = true, nullable = false)
     private UUID publicId;
 
+    @Column(nullable = false, length = 150)
     String name;
 
+    @Column(unique = true, nullable = false, length = 14)
     String document;
 
     BigDecimal balance = new BigDecimal(0);

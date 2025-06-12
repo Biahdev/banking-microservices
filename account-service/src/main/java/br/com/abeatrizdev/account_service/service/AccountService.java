@@ -41,12 +41,6 @@ public class AccountService {
         return accountMapper.toDTO(accountEntity);
     }
 
-    @Transactional(readOnly = true)
-    public AccountResponse findByInternalId(Long id) {
-        var accountEntity = accountRepository.findById(id).orElseThrow(EntityNotFoundException::new);
-        return accountMapper.toDTO(accountEntity);
-    }
-
     @Transactional()
     public AccountResponse update(UUID publicId, UpdateAccountRequest request) {
         var accountEntity = accountRepository.findByPublicId(publicId).orElseThrow(EntityNotFoundException::new);
