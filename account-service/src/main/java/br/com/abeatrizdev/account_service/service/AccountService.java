@@ -16,11 +16,14 @@ import java.util.UUID;
 @Service
 public class AccountService {
 
-    @Autowired
-    private AccountMapper accountMapper;
+    private final AccountMapper accountMapper;
 
-    @Autowired
-    private AccountRepository accountRepository;
+    private final AccountRepository accountRepository;
+
+    public AccountService(AccountMapper accountMapper, AccountRepository accountRepository) {
+        this.accountMapper = accountMapper;
+        this.accountRepository = accountRepository;
+    }
 
     @Transactional
     public AccountResponse create(CreateAccountRequest request) {

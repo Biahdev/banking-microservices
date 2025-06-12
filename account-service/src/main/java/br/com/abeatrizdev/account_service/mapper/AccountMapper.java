@@ -11,7 +11,7 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface AccountMapper {
 
-    @Mapping(target = "categoryId", ignore = true)
+    @Mapping(target = "publicId", ignore = true)
     Account toEntity(CreateAccountRequest category);
 
     AccountResponse toDTO(Account clientEntity);
