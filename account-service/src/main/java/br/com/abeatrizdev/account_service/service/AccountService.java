@@ -24,10 +24,6 @@ public class AccountService {
 
     @Transactional
     public AccountResponse create(CreateAccountRequest request) {
-        if (request == null) {
-            throw new IllegalArgumentException("Request cannot be null");
-        }
-
         var accountEntity = accountMapper.toEntity(request);
         accountEntity = accountRepository.save(accountEntity);
         return accountMapper.toDTO(accountEntity);
