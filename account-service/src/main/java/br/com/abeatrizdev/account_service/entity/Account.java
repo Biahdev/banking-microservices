@@ -19,7 +19,7 @@ public class Account {
     @Column(unique = true, nullable = false)
     private UUID publicId;
 
-    @Column(nullable = false, length = 150)
+    @Column(nullable = false, length = 100)
     String name;
 
     @Column(unique = true, nullable = false, length = 14)
