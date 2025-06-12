@@ -1,4 +1,9 @@
 name: ci-account-service
+permissions:
+  contents: read
+  issues: read
+  checks: write
+  pull-requests: write
 on:
   push:
     branches: [ "*" ]
