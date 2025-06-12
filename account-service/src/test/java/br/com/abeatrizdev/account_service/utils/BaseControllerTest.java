@@ -39,7 +39,7 @@ public abstract class BaseControllerTest {
                     .andExpectAll(
                             status().isNotFound(),
                             jsonPath("$.status").value(404),
-                            jsonPath("$.message").value("Resource not found"),
+                            jsonPath("$.message").value("Endpoint not found"),
                             jsonPath("$.timestamp").exists()
                     );
 
@@ -57,7 +57,7 @@ public abstract class BaseControllerTest {
                     .andExpectAll(
                             status().isMethodNotAllowed(),
                             jsonPath("$.status").value(405),
-                            jsonPath("$.message").value("HTTP method not supported"),
+                            jsonPath("$.message").value("HTTP method 'PATCH' not supported for this endpoint"),
                             jsonPath("$.timestamp").exists()
                     );
         }
@@ -83,7 +83,7 @@ public abstract class BaseControllerTest {
                     .andExpectAll(
                             status().isBadRequest(),
                             jsonPath("$.status").value(400),
-                            jsonPath("$.message").value("Invalid JSON"),
+                            jsonPath("$.message").value("Invalid or malformed JSON"),
                             jsonPath("$.timestamp").exists()
                     );
         }

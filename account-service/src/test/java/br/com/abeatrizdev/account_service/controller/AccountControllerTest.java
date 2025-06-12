@@ -254,7 +254,7 @@ public class AccountControllerTest extends BaseControllerTest {
                     .andExpectAll(
                             status().isNotFound(),
                             jsonPath("$.status").value(404),
-                            jsonPath("$.message").value("Entity not found with id " + nonExistentPublicId),
+                            jsonPath("$.message").value("Resource not found: " + nonExistentPublicId),
                             jsonPath("$.timestamp").exists()
                     );
         }
@@ -359,7 +359,7 @@ public class AccountControllerTest extends BaseControllerTest {
                     .andExpectAll(
                             status().isNotFound(),
                             jsonPath("$.status").value(404),
-                            jsonPath("$.message").value("Entity not found with id " + nonExistentPublicId),
+                            jsonPath("$.message").value("Resource not found: " + nonExistentPublicId),
                             jsonPath("$.timestamp").exists()
                     );
         }
@@ -427,9 +427,9 @@ public class AccountControllerTest extends BaseControllerTest {
             // Then
             response.andDo(print())
                     .andExpectAll(
-                            status().isBadRequest(),
+                            status().isConflict(),
                             content().contentType(MediaType.APPLICATION_JSON),
-                            jsonPath("$.status").value(400),
+                            jsonPath("$.status").value(409),
                             jsonPath("$.message").value("Account is already inactive"),
                             jsonPath("$.timestamp").exists()
                     );
@@ -448,9 +448,9 @@ public class AccountControllerTest extends BaseControllerTest {
             // Then
             response.andDo(print())
                     .andExpectAll(
-                            status().isBadRequest(),
+                            status().isConflict(),
                             content().contentType(MediaType.APPLICATION_JSON),
-                            jsonPath("$.status").value(400),
+                            jsonPath("$.status").value(409),
                             jsonPath("$.message").value("Cannot delete account with non-zero balance."),
                             jsonPath("$.timestamp").exists()
                     );
@@ -473,7 +473,7 @@ public class AccountControllerTest extends BaseControllerTest {
                             status().isNotFound(),
                             content().contentType(MediaType.APPLICATION_JSON),
                             jsonPath("$.status").value(404),
-                            jsonPath("$.message").value("Entity not found with id " + nonExistentPublicId),
+                            jsonPath("$.message").value("Resource not found: " + nonExistentPublicId),
                             jsonPath("$.timestamp").exists()
                     );
 
@@ -547,9 +547,9 @@ public class AccountControllerTest extends BaseControllerTest {
             response
                     .andDo(print())
                     .andExpectAll(
-                            status().isBadRequest(),
+                            status().isConflict(),
                             content().contentType(MediaType.APPLICATION_JSON),
-                            jsonPath("$.status").value(400),
+                            jsonPath("$.status").value(409),
                             jsonPath("$.message").value("Account is already active"),
                             jsonPath("$.timestamp").exists()
                     );
