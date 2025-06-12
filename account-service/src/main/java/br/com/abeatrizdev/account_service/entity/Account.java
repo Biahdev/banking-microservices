@@ -1,5 +1,6 @@
 package br.com.abeatrizdev.account_service.entity;
 
+import br.com.abeatrizdev.account_service.dto.account.UpdateAccountRequest;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -24,6 +25,7 @@ public class Account {
 
     BigDecimal balance = new BigDecimal(0);
 
+    @Enumerated(EnumType.STRING)
     AccountStatus status = AccountStatus.ACTIVE;
 
     @CreationTimestamp
@@ -63,20 +65,38 @@ public class Account {
         this.updatedAt = updatedAt;
     }
 
+    public void update(UpdateAccountRequest request) {
+        this.name = request.name() != null ? request.name() : this.name;
+        this.document = request.document() != null ? request.document() : this.document;
+        this.balance = request.balance() != null ? request.balance() : this.balance;
+    }
+
+    public void softDelete() {
+        if (this.status == AccountStatus.INACTIVE) {
+            throw new IllegalStateException("Account is already inactive");
+        }
+
+        if (this.balance.compareTo(BigDecimal.ZERO) != 0) {
+            throw new IllegalStateException("Cannot delete account with non-zero balance.");
+        }
+
+        this.status = AccountStatus.INACTIVE;
+    }
+
+    public void activate() {
+        if (this.status == AccountStatus.ACTIVE) {
+            throw new IllegalStateException("Account is already active");
+        }
+
+        this.status = AccountStatus.ACTIVE;
+    }
+
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public UUID getPublicId() {
         return publicId;
-    }
-
-    public void setPublicId(UUID publicId) {
-        this.publicId = publicId;
     }
 
     public String getName() {

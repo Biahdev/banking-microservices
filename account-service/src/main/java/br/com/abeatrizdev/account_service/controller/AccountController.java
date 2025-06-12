@@ -2,6 +2,7 @@ package br.com.abeatrizdev.account_service.controller;
 
 import br.com.abeatrizdev.account_service.dto.account.CreateAccountRequest;
 import br.com.abeatrizdev.account_service.dto.account.AccountResponse;
+import br.com.abeatrizdev.account_service.dto.account.UpdateAccountRequest;
 import br.com.abeatrizdev.account_service.service.AccountService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +35,20 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.OK).body(accountService.findByPublicId(publicId));
     }
 
+    @PutMapping("/{publicId}")
+    public ResponseEntity<AccountResponse> update(@PathVariable UUID publicId, @RequestBody @Valid UpdateAccountRequest request) {
+        return ResponseEntity.ok(accountService.update(publicId, request));
+    }
 
+    @DeleteMapping("/{publicId}")
+    public ResponseEntity<AccountResponse> softDelete(@PathVariable UUID publicId) {
+        return ResponseEntity.ok(accountService.softDelete(publicId));
+    }
 
-
+    @PutMapping("/{publicId}/reactivate")
+    public ResponseEntity<AccountResponse> reactivate(@PathVariable UUID publicId) {
+        return ResponseEntity.ok(accountService.reactivate(publicId));
+    }
 
 
 }

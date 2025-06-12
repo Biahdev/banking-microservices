@@ -2,6 +2,7 @@ package br.com.abeatrizdev.account_service.service;
 
 import br.com.abeatrizdev.account_service.dto.account.AccountResponse;
 import br.com.abeatrizdev.account_service.dto.account.CreateAccountRequest;
+import br.com.abeatrizdev.account_service.dto.account.UpdateAccountRequest;
 import br.com.abeatrizdev.account_service.mapper.AccountMapper;
 import br.com.abeatrizdev.account_service.repository.AccountRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -47,6 +48,27 @@ public class AccountService {
     @Transactional(readOnly = true)
     public AccountResponse findByInternalId(Long id) {
         var accountEntity = accountRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        return accountMapper.toDTO(accountEntity);
+    }
+
+    @Transactional()
+    public AccountResponse update(UUID publicId, UpdateAccountRequest request) {
+        var accountEntity = accountRepository.findByPublicId(publicId).orElseThrow(EntityNotFoundException::new);
+        accountEntity.update(request);
+        return accountMapper.toDTO(accountEntity);
+    }
+
+    @Transactional()
+    public AccountResponse softDelete(UUID publicId) {
+        var accountEntity = accountRepository.findByPublicId(publicId).orElseThrow(EntityNotFoundException::new);
+        accountEntity.softDelete();
+        return accountMapper.toDTO(accountEntity);
+    }
+
+    @Transactional()
+    public AccountResponse reactivate(UUID publicId) {
+        var accountEntity = accountRepository.findByPublicId(publicId).orElseThrow(EntityNotFoundException::new);
+        accountEntity.activate();
         return accountMapper.toDTO(accountEntity);
     }
 

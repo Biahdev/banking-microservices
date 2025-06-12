@@ -8,8 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -24,8 +22,6 @@ public abstract class BaseControllerTest {
     protected ObjectMapper objectMapper;
 
     protected String baseUrl;
-
-    protected String resourceName;
 
     @Nested
     @DisplayName("Common API Validation")
@@ -53,7 +49,7 @@ public abstract class BaseControllerTest {
         @DisplayName("Invalid HTTP Method return error message")
         void givenUnsupportedHttpMethod_whenRequest_thenReturnsMethodNotAllowed() throws Exception {
             // Given | When
-            var response = mockMvc.perform(put(baseUrl));
+            var response = mockMvc.perform(patch(baseUrl));
 
             // Then
             response

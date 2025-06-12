@@ -2,6 +2,7 @@ package br.com.abeatrizdev.account_service.controller;
 
 import br.com.abeatrizdev.account_service.dto.account.AccountResponse;
 import br.com.abeatrizdev.account_service.dto.account.CreateAccountRequest;
+import br.com.abeatrizdev.account_service.dto.account.UpdateAccountRequest;
 import br.com.abeatrizdev.account_service.entity.AccountStatus;
 import br.com.abeatrizdev.account_service.service.AccountService;
 import br.com.abeatrizdev.account_service.utils.BaseControllerTest;
@@ -23,8 +24,7 @@ import java.util.UUID;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -41,7 +41,11 @@ public class AccountControllerTest extends BaseControllerTest {
 
     private AccountResponse accountResponse2;
 
+    private AccountResponse deletedAccountResponse;
+
     private List<AccountResponse> listAccountResponse;
+
+    private UpdateAccountRequest updateAccountRequest;
 
     private final UUID validPublicId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
@@ -50,7 +54,6 @@ public class AccountControllerTest extends BaseControllerTest {
     @BeforeEach
     void setUp() {
         baseUrl = "/accounts";
-        resourceName = "accounts";
 
         createAccountRequest = new CreateAccountRequest(
                 "João Silva",
@@ -77,8 +80,23 @@ public class AccountControllerTest extends BaseControllerTest {
                 LocalDateTime.now().minusHours(2)
         );
 
-        listAccountResponse = Arrays.asList(accountResponse, accountResponse2);
+        updateAccountRequest = new UpdateAccountRequest(
+                accountResponse.name(),
+                accountResponse.document(),
+                accountResponse.balance()
+        );
 
+        deletedAccountResponse = new AccountResponse(
+                validPublicId,
+                "João Silva",
+                "12345678901",
+                BigDecimal.ZERO,
+                AccountStatus.INACTIVE,
+                LocalDateTime.now().minusDays(30),
+                LocalDateTime.now()
+        );
+
+        listAccountResponse = Arrays.asList(accountResponse, accountResponse2);
     }
 
     @Nested
@@ -88,51 +106,56 @@ public class AccountControllerTest extends BaseControllerTest {
         @Test
         @DisplayName("Success")
         void givenValidRequest_whenCreateAccount_thenReturnCreated() throws Exception {
+            // Given
             given(accountService.create(any(CreateAccountRequest.class))).willReturn(accountResponse);
 
-            var response = mockMvc.perform(post(baseUrl)
-                    .contentType(MediaType.APPLICATION_JSON)
+            // When
+            var response = mockMvc.perform(post(baseUrl).contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(createAccountRequest)));
 
-            response
-                    .andDo(print())
+            // Then
+            response.andDo(print())
                     .andExpectAll(
                             status().isCreated(),
                             jsonPath("$.publicId").isNotEmpty(),
                             jsonPath("$.name").value(accountResponse.name()),
                             jsonPath("$.document").value(accountResponse.document()),
-                            jsonPath("$.balance").value(0.0),
-                            jsonPath("$.status").value("ACTIVE"),
-                            jsonPath("$.createdAt").isNotEmpty(),
-                            jsonPath("$.updatedAt").isNotEmpty()
+                            jsonPath("$.balance").value(accountResponse.balance()),
+                            jsonPath("$.status").value(accountResponse.status().toString()),
+                            jsonPath("$.createdAt").exists(),
+                            jsonPath("$.updatedAt").exists()
                     );
         }
 
         @Test
         @DisplayName("Failure - Invalid request")
         void givenInvalidRequest_whenCreateAccount_thenReturnBadRequest() throws Exception {
-            var invalidJson = """
-                    {
-                        "name": "1",
-                        "document": ""
-                    }""";
-            var response = mockMvc.perform(post(baseUrl)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(invalidJson));
+            // Given
+            var invalidCreateAccountRequest = new CreateAccountRequest(
+                    "A",
+                    ""
+            );
 
-            response
-                    .andDo(print())
+            // When
+            var response = mockMvc.perform(post(baseUrl).contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(invalidCreateAccountRequest)));
+
+            // Then
+            response.andDo(print())
                     .andExpectAll(
                             status().isBadRequest(),
                             jsonPath("$.message").value("Request contains validation errors"),
                             jsonPath("$.details.name").exists(),
-                            jsonPath("$.details.document").exists()
+                            jsonPath("$.details.document").exists(),
+                            jsonPath("$.details.name[0]").value("size must be between 3 and 100"),
+                            jsonPath("$.details.document[0]").value("size must be between 8 and 14"),
+                            jsonPath("$.details.document[1]").value("must not be blank")
                     );
         }
     }
 
     @Nested
-    @DisplayName("Accounts FindAll - GET /accounts")
+    @DisplayName("Account FindAll - GET /accounts")
     class FindAll {
 
         @Test
@@ -141,9 +164,11 @@ public class AccountControllerTest extends BaseControllerTest {
             // Given
             given(accountService.findAll()).willReturn(listAccountResponse);
 
-            // When & Then
-            mockMvc.perform(get(baseUrl).contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
+            // When
+            var response = mockMvc.perform(get(baseUrl).contentType(MediaType.APPLICATION_JSON));
+
+            // Then
+            response.andDo(print())
                     .andExpectAll(
                             status().isOk(),
                             content().contentType(MediaType.APPLICATION_JSON),
@@ -173,9 +198,11 @@ public class AccountControllerTest extends BaseControllerTest {
             // Given
             given(accountService.findAll()).willReturn(new ArrayList<>());
 
-            // When & Then
-            mockMvc.perform(get(baseUrl).contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
+            // When
+            var response = mockMvc.perform(get(baseUrl).contentType(MediaType.APPLICATION_JSON));
+
+            // Then
+            response.andDo(print())
                     .andExpectAll(
                             status().isOk(),
                             content().contentType(MediaType.APPLICATION_JSON),
@@ -195,32 +222,35 @@ public class AccountControllerTest extends BaseControllerTest {
             // Given
             given(accountService.findByPublicId(validPublicId)).willReturn(accountResponse);
 
-            // When & Then
-            mockMvc.perform(get(baseUrl + "/{publicId}", validPublicId).contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
+            // When
+            var response = mockMvc.perform(get(baseUrl + "/{publicId}", validPublicId).contentType(MediaType.APPLICATION_JSON));
+
+            // Then
+            response.andDo(print())
                     .andExpectAll(
                             status().isOk(),
                             jsonPath("$.publicId").value(accountResponse.publicId().toString()),
                             jsonPath("$.name").value(accountResponse.name()),
                             jsonPath("$.document").value(accountResponse.document()),
-                            jsonPath("$.balance").value(0.0),
-                            jsonPath("$.status").value("ACTIVE"),
-                            jsonPath("$.createdAt").isNotEmpty(),
-                            jsonPath("$.updatedAt").isNotEmpty()
+                            jsonPath("$.balance").value(accountResponse.balance()),
+                            jsonPath("$.status").value(accountResponse.status().toString()),
+                            jsonPath("$.createdAt").exists(),
+                            jsonPath("$.updatedAt").exists()
                     );
         }
 
         @Test
-        @DisplayName("Failure - publicId Not Found")
+        @DisplayName("Failure - Not Found publicId")
         void givenInvalidPublicId_whenFindByPublicId_thenReturnNotFound() throws Exception {
             // Given
             given(accountService.findByPublicId(invalidPublicId))
                     .willThrow(new EntityNotFoundException("" + invalidPublicId));
 
-            // When & Then
-            mockMvc.perform(get(baseUrl + "/{publicId}", invalidPublicId)
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andDo(print())
+            // When
+            var response = mockMvc.perform(get(baseUrl + "/{publicId}", invalidPublicId).contentType(MediaType.APPLICATION_JSON));
+
+            // Then
+            response.andDo(print())
                     .andExpectAll(
                             status().isNotFound(),
                             jsonPath("$.status").value(404),
@@ -233,8 +263,284 @@ public class AccountControllerTest extends BaseControllerTest {
         @ParameterizedTest(name = "{0}")
         @MethodSource("br.com.abeatrizdev.account_service.utils.UtilsTest#invalidUuidProvider")
         void givenInvalidUuidFormat_whenFindByPublicId_thenReturnBadRequest(String invalidUuid) throws Exception {
-            // When
+            // Given & When
             var response = mockMvc.perform(get(baseUrl + "/{publicId}", invalidUuid)
+                    .contentType(MediaType.APPLICATION_JSON));
+
+            // Then
+            response.andDo(print())
+                    .andExpectAll(
+                            status().isBadRequest(),
+                            content().contentType(MediaType.APPLICATION_JSON),
+                            jsonPath("$.status").value(400),
+                            jsonPath("$.message").exists(),
+                            jsonPath("$.timestamp").exists()
+                    );
+
+        }
+    }
+
+    @Nested
+    @DisplayName("Account Update - PUT /accounts/{publicId}")
+    class Update {
+
+        @Test
+        @DisplayName("Success")
+        void givenValidRequestAndExistingAccount_whenUpdate_thenReturnUpdatedAccount() throws Exception {
+            // Given
+            given(accountService.update(validPublicId, updateAccountRequest)).willReturn(accountResponse2);
+
+            // When
+            var response = mockMvc.perform(put(baseUrl + "/{publicId}", validPublicId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(updateAccountRequest)));
+
+            // Then
+            response.andDo(print())
+                    .andExpectAll(
+                            status().isOk(),
+                            jsonPath("$.publicId").value(accountResponse2.publicId().toString()),
+                            jsonPath("$.name").value(accountResponse2.name()),
+                            jsonPath("$.document").value(accountResponse2.document()),
+                            jsonPath("$.balance").value(accountResponse2.balance()),
+                            jsonPath("$.status").value(accountResponse2.status().toString()),
+                            jsonPath("$.createdAt").exists(),
+                            jsonPath("$.updatedAt").exists()
+                    );
+        }
+
+        @Test
+        @DisplayName("Failure - Invalid request")
+        void givenInvalidRequestData_whenUpdate_thenReturnBadRequest() throws Exception {
+            // Given
+            var invalidUpdateRequest = new UpdateAccountRequest(
+                    "J",
+                    "123abc",
+                    new BigDecimal("100.540")
+            );
+
+            // When
+            var response = mockMvc.perform(put(baseUrl + "/{publicId}", validPublicId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(invalidUpdateRequest)));
+
+            // Then
+            response.andDo(print())
+                    .andExpectAll(
+                            status().isBadRequest(),
+                            content().contentType(MediaType.APPLICATION_JSON),
+                            jsonPath("$.status").value(400),
+                            jsonPath("$.message").value("Request contains validation errors"),
+                            jsonPath("$.details").exists(),
+                            jsonPath("$.details.name").exists(),
+                            jsonPath("$.details.document").exists(),
+                            jsonPath("$.details.balance").exists(),
+                            jsonPath("$.details.name[0]").value("size must be between 3 and 100"),
+                            jsonPath("$.details.document[0]").value("size must be between 8 and 14"),
+                            jsonPath("$.details.balance[0]").value("numeric value out of bounds (<9 digits>.<2 digits> expected)"),
+                            jsonPath("$.timestamp").exists()
+                    );
+        }
+
+        @Test
+        @DisplayName("Failure - Not Found publicId")
+        void givenInvalidPublicId_whenUpdate_thenReturnNotFound() throws Exception {
+            // Given
+            given(accountService.update(invalidPublicId, updateAccountRequest))
+                    .willThrow(new EntityNotFoundException("" + invalidPublicId));
+
+            // When
+            var response = mockMvc.perform(put(baseUrl + "/{publicId}", invalidPublicId, updateAccountRequest)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(updateAccountRequest)));
+
+            // Then
+            response.andDo(print())
+                    .andExpectAll(
+                            status().isNotFound(),
+                            jsonPath("$.status").value(404),
+                            jsonPath("$.message").value("Entity not found with id " + invalidPublicId),
+                            jsonPath("$.timestamp").exists()
+                    );
+        }
+
+        @DisplayName("Failure - Invalid publicId")
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("br.com.abeatrizdev.account_service.utils.UtilsTest#invalidUuidProvider")
+        void givenInvalidUuidFormat_whenUpdate_thenReturnBadRequest(String invalidUuid) throws Exception {
+            // Given & When
+            var response = mockMvc.perform(put(baseUrl + "/{publicId}", invalidUuid)
+                    .contentType(MediaType.APPLICATION_JSON));
+
+            // Then
+            response.andDo(print())
+                    .andExpectAll(
+                            status().isBadRequest(),
+                            content().contentType(MediaType.APPLICATION_JSON),
+                            jsonPath("$.status").value(400),
+                            jsonPath("$.message").exists(),
+                            jsonPath("$.timestamp").exists()
+                    );
+
+        }
+    }
+
+    @Nested
+    @DisplayName("Account SoftDelete - DELETE /accounts/{publicId}")
+    class SoftDelete {
+
+        @Test
+        @DisplayName("Success")
+        void givenActiveAccountWithZeroBalance_whenSoftDelete_thenReturnInactiveAccount() throws Exception {
+            // Given
+            given(accountService.softDelete(validPublicId)).willReturn(deletedAccountResponse);
+
+            // When
+            var response = mockMvc.perform(delete(baseUrl + "/{publicId}", validPublicId)
+                    .contentType(MediaType.APPLICATION_JSON));
+
+            // Then
+            response.andDo(print())
+                    .andExpectAll(
+                            status().isOk(),
+                            content().contentType(MediaType.APPLICATION_JSON),
+                            jsonPath("$.publicId").value(validPublicId.toString()),
+                            jsonPath("$.name").value(deletedAccountResponse.name()),
+                            jsonPath("$.document").value(deletedAccountResponse.document()),
+                            jsonPath("$.balance").value(deletedAccountResponse.balance()),
+                            jsonPath("$.status").value("INACTIVE"),
+                            jsonPath("$.updatedAt").exists()
+                    );
+        }
+
+        @Test
+        @DisplayName("Failure - already inactive Account")
+        void givenAlreadyInactiveAccount_whenSoftDelete_thenReturnBadRequest() throws Exception {
+            // Given
+            given(accountService.softDelete(validPublicId))
+                    .willThrow(new IllegalStateException("Account is already inactive"));
+
+            // When
+            var response = mockMvc.perform(delete(baseUrl + "/{publicId}", validPublicId)
+                    .contentType(MediaType.APPLICATION_JSON));
+
+            // Then
+            response.andDo(print())
+                    .andExpectAll(
+                            status().isBadRequest(),
+                            content().contentType(MediaType.APPLICATION_JSON),
+                            jsonPath("$.status").value(400),
+                            jsonPath("$.message").value("Account is already inactive"),
+                            jsonPath("$.timestamp").exists()
+                    );
+        }
+
+        @Test
+        @DisplayName("Failure - non-zero balance")
+        void givenAccountWithNonZeroBalance_whenSoftDelete_thenReturnBadRequest() throws Exception {
+            // Given
+            given(accountService.softDelete(validPublicId)).willThrow(new IllegalStateException("Cannot delete account with non-zero balance."));
+
+            // When
+            var response = mockMvc.perform(delete(baseUrl + "/{publicId}", validPublicId)
+                    .contentType(MediaType.APPLICATION_JSON));
+
+            // Then
+            response.andDo(print())
+                    .andExpectAll(
+                            status().isBadRequest(),
+                            content().contentType(MediaType.APPLICATION_JSON),
+                            jsonPath("$.status").value(400),
+                            jsonPath("$.message").value("Cannot delete account with non-zero balance."),
+                            jsonPath("$.timestamp").exists()
+                    );
+        }
+
+        @Test
+        @DisplayName("Failure - Not Found publicId")
+        void givenNonExistentAccountId_whenSoftDelete_thenReturnNotFound() throws Exception {
+            // Given
+            given(accountService.softDelete(invalidPublicId))
+                    .willThrow(new EntityNotFoundException("" + invalidPublicId));
+
+            // When
+            var response = mockMvc.perform(delete(baseUrl + "/{publicId}", invalidPublicId)
+                    .contentType(MediaType.APPLICATION_JSON));
+
+            // Then
+            response.andDo(print())
+                    .andExpectAll(
+                            status().isNotFound(),
+                            content().contentType(MediaType.APPLICATION_JSON),
+                            jsonPath("$.status").value(404),
+                            jsonPath("$.message").value("Entity not found with id " + invalidPublicId),
+                            jsonPath("$.timestamp").exists()
+                    );
+
+        }
+
+        @DisplayName("Failure - Invalid publicId")
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("br.com.abeatrizdev.account_service.utils.UtilsTest#invalidUuidProvider")
+        void givenInvalidUuidFormat_whenSoftDelete_thenReturnBadRequest(String invalidUuid) throws Exception {
+            // Given & When
+            var response = mockMvc.perform(delete(baseUrl + "/{publicId}", invalidUuid)
+                    .contentType(MediaType.APPLICATION_JSON));
+
+            // Then
+            response.andDo(print())
+                    .andExpectAll(
+                            status().isBadRequest(),
+                            content().contentType(MediaType.APPLICATION_JSON),
+                            jsonPath("$.status").value(400),
+                            jsonPath("$.message").exists(),
+                            jsonPath("$.timestamp").exists()
+                    );
+
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Account Reactive - PUT /{publicId}/reactivate ")
+    class Reactive {
+
+        @Test
+        @DisplayName("Success")
+        void givenInactiveAccount_whenReactivate_thenReturnActiveAccount() throws Exception {
+            // Given
+            given(accountService.reactivate(validPublicId)).willReturn(accountResponse);
+
+            // When
+            var response = mockMvc.perform(put(baseUrl + "/{publicId}/reactivate", validPublicId)
+                    .contentType(MediaType.APPLICATION_JSON));
+
+            // Then
+            response
+                    .andDo(print())
+                    .andExpectAll(
+                            status().isOk(),
+                            content().contentType(MediaType.APPLICATION_JSON),
+                            jsonPath("$.publicId").value(validPublicId.toString()),
+                            jsonPath("$.name").value(accountResponse.name()),
+                            jsonPath("$.document").value(accountResponse.document()),
+                            jsonPath("$.balance").value(accountResponse.balance()),
+                            jsonPath("$.status").value(accountResponse.status().toString()),
+                            jsonPath("$.createdAt").exists(),
+                            jsonPath("$.updatedAt").exists()
+                    );
+
+        }
+
+        @Test
+        @DisplayName("Failure - already active Account")
+        void givenAlreadyActiveAccount_whenReactivate_thenReturnBadRequest() throws Exception {
+            // Given
+            given(accountService.reactivate(validPublicId))
+                    .willThrow(new IllegalStateException("Account is already active"));
+
+            // When
+            var response = mockMvc.perform(put(baseUrl + "/{publicId}/reactivate", validPublicId)
                     .contentType(MediaType.APPLICATION_JSON));
 
             // Then
@@ -244,23 +550,53 @@ public class AccountControllerTest extends BaseControllerTest {
                             status().isBadRequest(),
                             content().contentType(MediaType.APPLICATION_JSON),
                             jsonPath("$.status").value(400),
+                            jsonPath("$.message").value("Account is already active"),
+                            jsonPath("$.timestamp").exists()
+                    );
+        }
+
+        @Test
+        @DisplayName("Failure - Not Found publicId")
+        void givenNonExistentAccountId_whenReactivate_thenReturnNotFound() throws Exception {
+            // Given
+            given(accountService.reactivate(invalidPublicId))
+                    .willThrow(new EntityNotFoundException("Account not found"));
+
+            // When
+            var response = mockMvc.perform(put(baseUrl + "/{publicId}/reactivate", invalidPublicId)
+                    .contentType(MediaType.APPLICATION_JSON));
+
+            // Then
+            response
+                    .andDo(print())
+                    .andExpectAll(
+                            status().isNotFound(),
+                            content().contentType(MediaType.APPLICATION_JSON),
+                            jsonPath("$.status").value(404),
                             jsonPath("$.message").exists(),
                             jsonPath("$.timestamp").exists()
                     );
         }
-    }
 
+        @DisplayName("Failure - Invalid publicId")
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("br.com.abeatrizdev.account_service.utils.UtilsTest#invalidUuidProvider")
+        void givenInvalidUuidFormat_whenReactivate_thenReturnBadRequest(String invalidUuid) throws Exception {
+            // Given & When
+            var response = mockMvc.perform(put(baseUrl + "/{publicId}/reactivate", invalidUuid)
+                    .contentType(MediaType.APPLICATION_JSON));
 
-    @Nested
-    @DisplayName("Account Update")
-    class Update {
+            // Then
+            response.andDo(print())
+                    .andExpectAll(
+                            status().isBadRequest(),
+                            content().contentType(MediaType.APPLICATION_JSON),
+                            jsonPath("$.status").value(400),
+                            jsonPath("$.message").exists(),
+                            jsonPath("$.timestamp").exists()
+                    );
 
-    }
-
-    @Nested
-    @DisplayName("Account Delete")
-    class Delete {
-
+        }
     }
 
 
