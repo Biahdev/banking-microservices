@@ -19,6 +19,9 @@ on:
 jobs:
   run-tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./account-service
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -31,9 +34,6 @@ jobs:
 
       - name: Run Tests with Maven Wrapper
         run: |
-            echo "Diretório atual 01: $(pwd)"
-            cd account-service
-            echo "Diretório atual 02: $(pwd)"
             chmod +x mvnw
             ./mvnw test -Dspring.profiles.active=test --batch-mode
 
