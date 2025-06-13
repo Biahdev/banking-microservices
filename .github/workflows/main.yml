@@ -31,9 +31,9 @@ jobs:
 
       - name: Run Tests with Maven Wrapper
         run: |
-            echo "Diretório atual 1: $(pwd)"
+            echo "Diretório atual 01: $(pwd)"
             cd account-service
-            echo "Diretório atual 2: $(pwd)"
+            echo "Diretório atual 02: $(pwd)"
             chmod +x mvnw
             ./mvnw test -Dspring.profiles.active=test --batch-mode
 
