@@ -29,15 +29,15 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      - name: Update Maven
-        run: sudo apt update && sudo apt install -y maven
-
-      - name: Run Tests with Maven
-        run: mvn test -Dspring.profiles.active=test -e -X
+      - name: Run Tests with Maven Wrapper
+        run: |
+          cd account-service
+          chmod +x mvnw
+          ./mvnw test -Dspring.profiles.active=test --batch-mode
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
-          files: '**/target/surefire-reports/TEST-*.xml'
+          files: 'account-service/target/surefire-reports/TEST-*.xml'
 
