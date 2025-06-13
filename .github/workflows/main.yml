@@ -31,11 +31,11 @@ jobs:
 
       - name: Run Tests with Maven Wrapper
         run: |
-          pwd
-          cd account-service
-          pwd
-          chmod +x mvnw
-          ./mvnw test -Dspring.profiles.active=test --batch-mode
+            echo "Diretório atual 1: $(pwd)"
+            cd account-service
+            echo "Diretório atual 2: $(pwd)"
+            chmod +x mvnw
+            ./mvnw test -Dspring.profiles.active=test --batch-mode
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
