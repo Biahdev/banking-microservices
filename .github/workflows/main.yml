@@ -31,7 +31,9 @@ jobs:
 
       - name: Run Tests with Maven Wrapper
         run: |
+          pwd
           cd account-service
+          pwd
           chmod +x mvnw
           ./mvnw test -Dspring.profiles.active=test --batch-mode
 
