@@ -6,12 +6,12 @@ permissions:
   pull-requests: write
 on:
   push:
-    branches: [ "*" ]
+    branches: [ "main" ]
     paths:
       - 'account-service/**'
       - '.github/workflows/account-service.yml'
   pull_request:
-    branches: [ "*" ]
+    branches: [ "main" ]
     paths:
       - 'account-service/**'
       - '.github/workflows/account-service.yml'
@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
