@@ -16,7 +16,7 @@ transações, publicando eventos no Kafka, enquanto o Account Service consome es
 
 - Criação e gerenciamento de contas bancárias
 - Controle de status da conta (ativo/inativo)
-- Gerenciamento de limites de transação (PIX, transferências)
+- Gerenciamento de limites de transação
 - Atualização de saldos via eventos Kafka
 - Notificação de mudanças de limites
 
@@ -38,7 +38,7 @@ PUT    /accounts/{id}/limits        - Atualizar limites da conta
 - Processamento de transferências entre contas
 - Validação de saldos e limites antes das transações
 - Histórico completo de transações
-- Controle de uso de limites diários e mensais
+- Controle de uso de limites diários
 
 ### Endpoints
 
