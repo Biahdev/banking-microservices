@@ -60,7 +60,7 @@ GET    /transactions/account/{accountId}/usage   - Uso de limites no dia/mês
 
 ```bash
 # Clonar o repositório
-git clone <repository-url>
+git clone <url-do-repositorio>
 cd banking-microservice
 
 # Configurar variáveis de ambiente e editar .env com suas configurações
@@ -105,10 +105,10 @@ cd transaction-service
 
 - **Transaction Service** - Desenvolvimento do processamento de transferências
 - **Kafka Integration** - Configuração da comunicação assíncrona entre serviços
-- **Limits Management** - Sistema de limites de transação
 
 ### Próximos Passos
 
+- **Limits Management** - Sistema de limites de transação
 - **Transaction Service** - Testes unitários e de integração
 - **Transaction Service** - Documentação com Swagger
 - **Melhorias na validação** de dados e regras de negócio
