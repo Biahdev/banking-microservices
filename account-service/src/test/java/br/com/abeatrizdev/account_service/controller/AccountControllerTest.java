@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -148,8 +149,10 @@ public class AccountControllerTest extends BaseControllerTest {
                             jsonPath("$.details.name").exists(),
                             jsonPath("$.details.document").exists(),
                             jsonPath("$.details.name[0]").value("size must be between 3 and 100"),
-                            jsonPath("$.details.document[0]").value("size must be between 8 and 14"),
-                            jsonPath("$.details.document[1]").value("must not be blank")
+                            jsonPath("$.details.document").value(containsInAnyOrder(
+                            "must not be blank",
+                            "size must be between 8 and 14"
+                        ))
                     );
         }
     }
