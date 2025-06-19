@@ -154,7 +154,6 @@ public class AccountServiceTest {
 
         listAccountResponse = Arrays.asList(accountResponse, accountResponse2);
     }
-
     @AfterEach
     void tearDown() {
         reset(accountRepository, accountMapper);

@@ -6,9 +6,9 @@ spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
   datasource:
-    url: jdbc:postgresql://${ACCOUNT_SERVICE_DB_HOST:account-db-postgres}:${ACCOUNT_SERVICE_DB_PORT:5432}/${ACCOUNT_SERVICE_DB_NAME:db}
-    username: ${ACCOUNT_SERVICE_DB_USERNAME:postgres}
-    password: ${ACCOUNT_SERVICE_DB_PASSWORD:postgres123}
+    url: jdbc:postgresql://${TRANSACTION_SERVICE_DB_HOST:db-postgres}:${TRANSACTION_SERVICE_DB_PORT:5432}/${TRANSACTION_SERVICE_DB_NAME:account-db}
+    username: ${TRANSACTION_SERVICE_DB_USERNAME:postgres}
+    password: ${TRANSACTION_SERVICE_DB_PASSWORD:postgres123}
   jpa:
     properties:
       hibernate:

@@ -6,19 +6,40 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      - db-postgres
+      - account-db-postgres
     networks:
       - network
-
-  db-postgres:
+  account-db-postgres:
     image: postgres:17.5-alpine
-    container_name: db-postgres
+    container_name: account-db-postgres
     environment:
-      POSTGRES_DB: ${DB_NAME:-account-db}
-      POSTGRES_USER: ${DB_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres123}
+      POSTGRES_DB: ${ACCOUNT_SERVICE_DB_NAME:-db}
+      POSTGRES_USER: ${ACCOUNT_SERVICE_DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${ACCOUNT_SERVICE_DB_PASSWORD:-postgres123}
     ports:
-      - "${DB_PORT:-5432}:${DB_PORT:-5432}"
+      - "${ACCOUNT_SERVICE_DB_PORT:-5432}:${ACCOUNT_SERVICE_DB_PORT:-5432}"
+    restart: unless-stopped
+    networks:
+      - network
+  transaction-service:
+    build: ./transaction-service
+    container_name: transaction-service
+    env_file: .env
+    ports:
+      - "8082:8082"
+    depends_on:
+      - transaction-db-postgres
+    networks:
+      - network
+  transaction-db-postgres:
+    image: postgres:17.5-alpine
+    container_name: transaction-db-postgres
+    environment:
+      POSTGRES_DB: ${TRANSACTION_SERVICE_DB_NAME:-db}
+      POSTGRES_USER: ${TRANSACTION_SERVICE_DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${TRANSACTION_SERVICE_DB_PASSWORD:-postgres123}
+    ports:
+      - "${TRANSACTION_SERVICE_DB_PORT:-5430}:${TRANSACTION_SERVICE_DB_PORT:-5432}"
     restart: unless-stopped
     networks:
       - network
@@ -62,7 +83,6 @@ services:
       - kafka-data:/var/lib/kafka/data
     networks:
       - network
-
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
