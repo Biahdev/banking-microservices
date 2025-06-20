@@ -1,4 +1,4 @@
-package com.abeatrizdev.transaction_service;
+package br.com.abeatrizdev.transaction_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
