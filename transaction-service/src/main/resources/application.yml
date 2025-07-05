@@ -1,12 +1,12 @@
 server:
-  port: 8081
+  port: 8082
 spring:
   application:
     name: account-service
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
   datasource:
-    url: jdbc:postgresql://${TRANSACTION_SERVICE_DB_HOST:db-postgres}:${TRANSACTION_SERVICE_DB_PORT:5432}/${TRANSACTION_SERVICE_DB_NAME:account-db}
+    url: jdbc:postgresql://${TRANSACTION_SERVICE_DB_HOST:localhost}:${TRANSACTION_SERVICE_DB_PORT:5432}/${TRANSACTION_SERVICE_DB_NAME:db}
     username: ${TRANSACTION_SERVICE_DB_USERNAME:postgres}
     password: ${TRANSACTION_SERVICE_DB_PASSWORD:postgres123}
   jpa:
@@ -16,3 +16,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+logging:
+  level:
+    org.springframework.web: DEBUG
+    br.com.abeatrizdev: DEBUG

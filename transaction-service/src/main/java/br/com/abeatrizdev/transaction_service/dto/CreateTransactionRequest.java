@@ -1,4 +1,5 @@
 package br.com.abeatrizdev.transaction_service.dto;
+
 import br.com.abeatrizdev.transaction_service.entity.TransactionType;
 import jakarta.validation.constraints.*;
 
@@ -13,9 +14,9 @@ public record CreateTransactionRequest(
         UUID toAccountId,
 
         @NotNull
-        @DecimalMin(value = "0.01", message = "Amount must be greater than zero")
-        @DecimalMax(value = "999999.99", message = "Amount cannot exceed 999,999.99")
-        @Digits(integer = 6, fraction = 2, message = "Amount must have at most 6 integer digits and 2 decimal places")
+        @Positive
+        @DecimalMax(value = "999999.99")
+        @Digits(integer = 6, fraction = 2)
         BigDecimal amount,
 
         @NotNull

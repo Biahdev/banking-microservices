@@ -43,11 +43,10 @@ PUT    /accounts/{id}/limits        - Atualizar limites da conta
 ### Endpoints
 
 ```
-POST   /transactions                           - Criar transferência entre contas
-GET    /transactions                           - Listar transações
-GET    /transactions/{id}                      - Consultar transação
-GET    /transactions/account/{accountId}       - Histórico por conta
-GET    /transactions/account/{accountId}/extract - Extrato da conta
+POST   /transactions                             - Criar transferência entre contas
+GET    /transactions                             - Listar transações
+GET    /transactions/{id}                        - Consultar transação
+GET    /transactions/account/{accountId}         - Histórico por conta
 GET    /transactions/account/{accountId}/usage   - Uso de limites no dia/mês
 ```
 
